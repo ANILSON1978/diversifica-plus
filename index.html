@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Comparador de Investimentos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 py-6 mb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa</h1>
+            <p class="text-slate-400 text-sm sm:text-base mt-1">Simule e compare rendimentos de CDB, LCA/LCI, Poupança e Fundos considerando imposto de renda e inflação.</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Painel de Parâmetros / Inputs (4 cols) -->
+            <div class="lg:col-span-4 space-y-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl h-fit">
+                <h2 class="text-xl font-semibold text-white border-b border-slate-700 pb-3">Parâmetros de Simulação</h2>
+
+                <!-- Aporte e Tempo -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="initialAmount" class="block text-sm font-medium text-slate-300 mb-1">Valor Inicial (R$)</label>
+                        <input type="number" id="initialAmount" value="10000" step="500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+
+                    <div>
+                        <label for="monthlyAmount" class="block text-sm font-medium text-slate-300 mb-1">Aporte Mensal (R$)</label>
+                        <input type="number" id="monthlyAmount" value="500" step="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+
+                    <div>
+                        <label for="months" class="block text-sm font-medium text-slate-300 mb-1">Prazo do Investimento</label>
+                        <select id="months" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <option value="6">6 meses</option>
+                            <option value="12" selected>12 meses (1 ano)</option>
+                            <option value="24">24 meses (2 anos)</option>
+                            <option value="36">36 meses (3 anos)</option>
+                            <option value="48">48 meses (4 anos)</option>
+                            <option value="60">60 meses (5 anos)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="cdi" class="block text-sm font-medium text-slate-300 mb-1">Taxa CDI Atual (% a.a.)</label>
+                        <input type="number" id="cdi" value="10.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                </div>
+
+                <hr class="border-slate-700">
+
+                <h3 class="text-lg font-medium text-white">Taxas Específicas dos Ativos</h3>
+
+                <!-- Taxas Ativos -->
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <label for="cdbRate" class="block text-slate-300 mb-1">CDB / LC (% do CDI)</label>
+                        <input type="number" id="cdbRate" value="100" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <div>
+                        <label for="lcaRate" class="block text-slate-300 mb-1">LCA / LCI (Isento de IR) (% do CDI)</label>
+                        <input type="number" id="lcaRate" value="90" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <div>
+                        <label for="poupancaRate" class="block text-slate-300 mb-1">Poupança (% a.a. fixo aproximado)</label>
+                        <input type="number" id="poupancaRate" value="6.17" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <div>
+                        <label for="fundoRate" class="block text-slate-300 mb-1">Fundo RF (% do CDI)</label>
+                        <input type="number" id="fundoRate" value="105" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <div>
+                        <label for="fundoFee" class="block text-slate-300 mb-1">Taxa de Administração Fundo (% a.a.)</label>
+                        <input type="number" id="fundoFee" value="0.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <button id="recalcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition duration-200">
+                    Recalcular Simulação
+                </button>
+            </div>
+
+            <!-- Painel de Resultados (8 cols) -->
+            <div class="lg:col-span-8 space-y-8">
+
+                <!-- Resumo em Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cardsContainer">
+                    <!-- Preenchido via Javascript -->
+                </div>
+
+                <!-- Gráfico de Evolução -->
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                    <h3 class="text-lg font-semibold text-white mb-4">Evolução do Patrimônio Líquido</h3>
+                    <div class="relative h-72 sm:h-80">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabela Detalhada de Resultados -->
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
+                    <h3 class="text-lg font-semibold text-white mb-4">Tabela Comparativa Completa</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 uppercase text-xs font-semibold">
+                                <tr>
+                                    <th class="py-3 px-4">Investimento</th>
+                                    <th class="py-3 px-4">Total Investido</th>
+                                    <th class="py-3 px-4">Valor Bruto</th>
+                                    <th class="py-3 px-4">Imposto (IR)</th>
+                                    <th class="py-3 px-4">Valor Líquido</th>
+                                    <th class="py-3 px-4">Lucro Líquido (R$)</th>
+                                    <th class="py-3 px-4">Retorno Líquido (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTable" class="divide-y divide-slate-700">
+                                <!-- Preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4">* As alíquotas de Imposto de Renda seguem a tabela regressiva (22.5% até 180 dias, 20% até 360, 17.5% até 720, 15% acima de 720 dias). LCA/LCI e Poupança são isentas de IR.</p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let growthChart = null;
+
+        function getIRRate(days) {
+            if (days <= 180) return 0.225;
+            if (days <= 360) return 0.20;
+            if (days <= 720) return 0.175;
+            return 0.15;
+        }
+
+        function calculateCompoundInterest(P, PMT, annualRate, months) {
+            let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
+            let monthlyData = [P];
+            let current = P;
+
+            for (let m = 1; m <= months; m++) {
+                current = current * (1 + monthlyRate) + PMT;
+                monthlyData.push(current);
+            }
+
+            return {
+                finalGross: current,
+                history: monthlyData
+            };
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        function formatPercent(val) {
+            return val.toFixed(2).replace('.', ',') + '%';
+        }
+
+        function updateSimulation() {
+            const P = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const PMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+            const months = parseInt(document.getElementById('months').value) || 12;
+            const cdi = (parseFloat(document.getElementById('cdi').value) || 0) / 100;
+
+            const cdbRate = (parseFloat(document.getElementById('cdbRate').value) || 0) / 100;
+            const lcaRate = (parseFloat(document.getElementById('lcaRate').value) || 0) / 100;
+            const poupancaRate = (parseFloat(document.getElementById('poupancaRate').value) || 0) / 100;
+            const fundoRate = (parseFloat(document.getElementById('fundoRate').value) || 0) / 100;
+            const fundoFee = (parseFloat(document.getElementById('fundoFee').value) || 0) / 100;
+
+            const totalInvested = P + (PMT * months);
+            const days = months * 30;
+            const irRate = getIRRate(days);
+
+            // Taxas Efetivas a.a.
+            const annualCDB = cdi * cdbRate;
+            const annualLCA = cdi * lcaRate;
+            const annualPoupanca = poupancaRate;
+            const annualFundo = Math.max(0, (cdi * fundoRate) - fundoFee);
+
+            // Cálculos
+            const cdbRes = calculateCompoundInterest(P, PMT, annualCDB, months);
+            const lcaRes = calculateCompoundInterest(P, PMT, annualLCA, months);
+            const poupancaRes = calculateCompoundInterest(P, PMT, annualPoupanca, months);
+            const fundoRes = calculateCompoundInterest(P, PMT, annualFundo, months);
+
+            const investments = [
+                { name: 'CDB / LC', gross: cdbRes.finalGross, taxRate: irRate, history: cdbRes.history, color: '#10b981' },
+                { name: 'LCA / LCI', gross: lcaRes.finalGross, taxRate: 0, history: lcaRes.history, color: '#3b82f6' },
+                { name: 'Poupança', gross: poupancaRes.finalGross, taxRate: 0, history: poupancaRes.history, color: '#f59e0b' },
+                { name: 'Fundo Renda Fixa', gross: fundoRes.finalGross, taxRate: irRate, history: fundoRes.history, color: '#8b5cf6' },
+            ];
+
+            const results = investments.map(inv => {
+                const profitGross = inv.gross - totalInvested;
+                const tax = profitGross > 0 ? profitGross * inv.taxRate : 0;
+                const net = inv.gross - tax;
+                const netProfit = net - totalInvested;
+                const netReturnPct = (netProfit / totalInvested) * 100;
+
+                return {
+                    ...inv,
+                    totalInvested,
+                    tax,
+                    net,
+                    netProfit,
+                    netReturnPct
+                };
+            });
+
+            // Atualizar Cards
+            const cardsContainer = document.getElementById('cardsContainer');
+            cardsContainer.innerHTML = '';
+            
+            // Ordena o melhor investimento para destacar no card
+            const sortedResults = [...results].sort((a, b) => b.net - a.net);
+
+            results.forEach(res => {
+                const isBest = res.name === sortedResults[0].name;
+                const cardHtml = `
+                    <div class="bg-slate-800 p-5 rounded-2xl border ${isBest ? 'border-emerald-500/50 bg-slate-800/90' : 'border-slate-700'} shadow-lg relative overflow-hidden">
+                        ${isBest ? '<span class="absolute top-3 right-3 bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-semibold border border-emerald-500/20">Maior Retorno</span>' : ''}
+                        <h4 class="text-slate-400 text-sm font-medium mb-1">${res.name}</h4>
+                        <div class="text-2xl font-bold text-white mb-2">${formatCurrency(res.net)}</div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">Lucro Líquido: <strong class="text-emerald-400 font-semibold">${formatCurrency(res.netProfit)}</strong></span>
+                            <span class="text-slate-400">Retorno: <strong class="text-slate-200 font-semibold">${formatPercent(res.netReturnPct)}</strong></span>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.innerHTML += cardHtml;
+            });
+
+            // Atualizar Tabela
+            const tableBody = document.getElementById('resultsTable');
+            tableBody.innerHTML = '';
+
+            results.forEach(res => {
+                const row = `
+                    <tr class="hover:bg-slate-700/50 transition">
+                        <td class="py-3 px-4 font-semibold text-white">${res.name}</td>
+                        <td class="py-3 px-4">${formatCurrency(res.totalInvested)}</td>
+                        <td class="py-3 px-4">${formatCurrency(res.gross)}</td>
+                        <td class="py-3 px-4 text-rose-400">${formatCurrency(res.tax)} (${(res.taxRate * 100).toFixed(1)}%)</td>
+                        <td class="py-3 px-4 font-bold text-emerald-400">${formatCurrency(res.net)}</td>
+                        <td class="py-3 px-4 font-semibold">${formatCurrency(res.netProfit)}</td>
+                        <td class="py-3 px-4 font-semibold text-emerald-400">${formatPercent(res.netReturnPct)}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            // Atualizar Gráfico
+            renderChart(months, results);
+        }
+
+        function renderChart(months, results) {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            const labels = Array.from({ length: months + 1 }, (_, i) => i === 0 ? 'Início' : `${i}º mês`);
+
+            const datasets = results.map(res => {
+                // Ajustar o histórico para valor líquido aproximado mês a mês
+                const netHistory = res.history.map((val, idx) => {
+                    if (idx === 0) return val;
+                    const investedUntilNow = parseFloat(document.getElementById('initialAmount').value) + (parseFloat(document.getElementById('monthlyAmount').value) * idx);
+                    const grossProfit = val - investedUntilNow;
+                    const tax = grossProfit > 0 ? grossProfit * res.taxRate : 0;
+                    return val - tax;
+                });
+
+                return {
+                    label: res.name,
+                    data: netHistory,
+                    borderColor: res.color,
+                    backgroundColor: res.color + '1A',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 0
+                };
+            });
+
+            if (growthChart) {
+                growthChart.destroy();
+            }
+
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: value => 'R$ ' + value.toLocaleString('pt-BR')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('recalcBtn').addEventListener('click', updateSimulation);
+
+        // Atualização automática ao alterar inputs
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', updateSimulation);
+        });
+
+        // Inicializar
+        updateSimulation();
+    </script>
+</body>
+</html>
