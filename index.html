@@ -2,506 +2,190 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Comparador de Investimentos</title>
-    
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Investimentos">
-    
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Simulador de Investimentos","short_name":"Investimentos","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#0f172a","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2489/2489756.png","sizes":"512x512","type":"image/png"}]}'>
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Investimentos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 0 20px;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #0056b3;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #003d82;
+    }
+    #parecer-container {
+      margin-top: 25px;
+      padding: 15px;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+      background-color: #d4edda;
+      color: #155724;
+      display: none; /* Inicia oculto até a simulação ser feita */
+    }
+    #parecer-container h3 {
+      margin-top: 0;
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 select-none">
-
-    <div id="pwaBanner" class="hidden bg-emerald-600 text-slate-950 px-4 py-3 font-medium flex justify-between items-center shadow-lg border-b border-emerald-400">
-        <div class="text-xs sm:text-sm font-semibold flex items-center gap-2">
-            <span>📲 Instale este app na sua tela inicial para acessar rápido!</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <button id="installBtn" class="bg-slate-950 text-emerald-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-slate-900 transition">Instalar</button>
-            <button id="closeBannerBtn" class="text-slate-950 hover:text-slate-800 text-lg px-1 font-bold">&times;</button>
-        </div>
-    </div>
-
-    <header class="bg-slate-800 border-b border-slate-700 py-6 mb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa & Crédito Privado</h1>
-            <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais, LCA Pré, datas retroativas e limite de 4 ativos visíveis.</p>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            <!-- Painel de Inputs -->
-            <div class="lg:col-span-4 space-y-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl h-fit">
-                
-                <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
-                    <h2 class="text-xl font-semibold text-white">Parâmetros Gerais</h2>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label for="startDate" class="block text-sm font-medium text-slate-300 mb-1">Data Inicial (Pode ser retroativa)</label>
-                        <input type="date" id="startDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-
-                    <div>
-                        <label for="initialAmount" class="block text-sm font-medium text-slate-300 mb-1">Valor Inicial (R$)</label>
-                        <input type="number" id="initialAmount" value="10000" step="500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-
-                    <div>
-                        <label for="monthlyAmount" class="block text-sm font-medium text-slate-300 mb-1">Aporte Mensal (R$)</label>
-                        <input type="number" id="monthlyAmount" value="500" step="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-
-                    <div>
-                        <label for="months" class="block text-sm font-medium text-slate-300 mb-1">Prazo do Investimento</label>
-                        <select id="months" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                            <option value="6">6 meses</option>
-                            <option value="12" selected>12 meses (1 ano)</option>
-                            <option value="24">24 meses (2 anos)</option>
-                            <option value="36">36 meses (3 anos)</option>
-                            <option value="48">48 meses (4 anos)</option>
-                            <option value="60">60 meses (5 anos)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="cdi" class="block text-sm font-medium text-slate-300 mb-1">Taxa CDI Atual (% a.a.)</label>
-                        <input type="number" id="cdi" value="10.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-                </div>
-
-                <hr class="border-slate-700">
-
-                <!-- Seleção de 4 Ativos -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-md font-semibold text-white">Escolha até 4 Ativos</h3>
-                        <span id="selectedCount" class="text-xs font-bold text-emerald-400 bg-slate-900 px-2 py-1 rounded">4/4 selecionados</span>
-                    </div>
-                    
-                    <div class="space-y-2 text-sm" id="checkboxGroup">
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="cdb" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> CDB / LC
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="lca" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Pós-Fixada)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="lcaPre" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Prefixada)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="deb" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado / Debênture (Cupons Semestrais)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="poupanca" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Poupança
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="fundo" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Fundo Renda Fixa
-                        </label>
-                    </div>
-                </div>
-
-                <hr class="border-slate-700">
-
-                <h3 class="text-lg font-medium text-white">Taxas dos Ativos</h3>
-
-                <div class="space-y-4 text-sm">
-                    <div id="input_cdb">
-                        <label for="cdbRate" class="block text-slate-300 mb-1">CDB / LC (% do CDI)</label>
-                        <input type="number" id="cdbRate" value="100" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_lca">
-                        <label for="lcaRate" class="block text-slate-300 mb-1">LCA / LCI Pós (% do CDI - Isento IR)</label>
-                        <input type="number" id="lcaRate" value="90" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_lcaPre">
-                        <label for="lcaPreRate" class="block text-slate-300 mb-1">LCA / LCI Prefixada (% a.a. fixo - Isento IR)</label>
-                        <input type="number" id="lcaPreRate" value="9.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_deb">
-                        <label for="debRate" class="block text-slate-300 mb-1">Debênture / CRA (% a.a. - Isento IR + Cupons)</label>
-                        <input type="number" id="debRate" value="11.0" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_poupanca" class="hidden">
-                        <label for="poupancaRate" class="block text-slate-300 mb-1">Poupança (% a.a. fixo)</label>
-                        <input type="number" id="poupancaRate" value="6.17" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_fundo" class="hidden">
-                        <label for="fundoRate" class="block text-slate-300 mb-1">Fundo RF (% do CDI)</label>
-                        <input type="number" id="fundoRate" value="105" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                        <label for="fundoFee" class="block text-slate-300 mt-2 mb-1">Taxa Adm Fundo (% a.a.)</label>
-                        <input type="number" id="fundoFee" value="0.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                </div>
-
-                <button id="recalcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition duration-200">
-                    Recalcular Simulação
-                </button>
-            </div>
-
-            <!-- Painel de Resultados -->
-            <div class="lg:col-span-8 space-y-8">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cardsContainer"></div>
-
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">Evolução do Patrimônio Líquido (Acumulado)</h3>
-                    <div class="relative h-72 sm:h-80">
-                        <canvas id="growthChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
-                    <h3 class="text-lg font-semibold text-white mb-4">Tabela Comparativa Completa</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="bg-slate-900 text-slate-400 uppercase text-xs font-semibold">
-                                <tr>
-                                    <th class="py-3 px-4">Investimento</th>
-                                    <th class="py-3 px-4">Total Investido</th>
-                                    <th class="py-3 px-4">Valor Bruto</th>
-                                    <th class="py-3 px-4">Imposto (IR)</th>
-                                    <th class="py-3 px-4">Cupons Pagos</th>
-                                    <th class="py-3 px-4">Valor Líquido</th>
-                                    <th class="py-3 px-4">Retorno (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultsTable" class="divide-y divide-slate-700"></tbody>
-                        </table>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-4">* Debêntures Incentivadas/CRAs e LCAs/LCIs são isentas de Imposto de Renda. Os cupons do crédito privado são calculados e acumulados a cada 6 meses.</p>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <script>
-        let growthChart = null;
-
-        // Definir data retroativa padrão (hoje)
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('startDate').value = today;
-
-        function getIRRate(days) {
-            if (days <= 180) return 0.225;
-            if (days <= 360) return 0.20;
-            if (days <= 720) return 0.175;
-            return 0.15;
-        }
-
-        function formatCurrency(val) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-        }
-
-        function formatPercent(val) {
-            return val.toFixed(2).replace('.', ',') + '%';
-        }
-
-        // Lógica de limite de 4 checkboxes + esconder inputs
-        const checkboxes = document.querySelectorAll('.asset-checkbox');
-        const selectedCountEl = document.getElementById('selectedCount');
-
-        function updateCheckboxLimits() {
-            const checked = document.querySelectorAll('.asset-checkbox:checked');
-            selectedCountEl.textContent = `${checked.length}/4 selecionados`;
-
-            checkboxes.forEach(cb => {
-                const inputDiv = document.getElementById(`input_${cb.value}`);
-                if (cb.checked) {
-                    if (inputDiv) inputDiv.classList.remove('hidden');
-                } else {
-                    if (inputDiv) inputDiv.classList.add('hidden');
-                }
-
-                // Desabilita as não marcadas se atingiu o limite de 4
-                if (checked.length >= 4 && !cb.checked) {
-                    cb.disabled = true;
-                    cb.parentElement.classList.add('opacity-40', 'cursor-not-allowed');
-                } else {
-                    cb.disabled = false;
-                    cb.parentElement.classList.remove('opacity-40', 'cursor-not-allowed');
-                }
-            });
-
-            updateSimulation();
-        }
-
-        checkboxes.forEach(cb => cb.addEventListener('change', updateCheckboxLimits));
-
-        // Cálculo composto padrão
-        function calculateCompoundInterest(P, PMT, annualRate, months) {
-            let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
-            let history = [P];
-            let current = P;
-
-            for (let m = 1; m <= months; m++) {
-                current = current * (1 + monthlyRate) + PMT;
-                history.push(current);
-            }
-            return { finalGross: current, history };
-        }
-
-        // Cálculo com Cupons Semestrais (Debêntures / Crédito Privado)
-        function calculateCouponInterest(P, PMT, annualRate, months) {
-            let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
-            let history = [P];
-            let current = P;
-            let totalCouponsPaid = 0;
-
-            for (let m = 1; m <= months; m++) {
-                current = current * (1 + monthlyRate) + PMT;
-                
-                // A cada 6 meses, paga cupom equivalente ao rendimento acumulado no principal
-                if (m % 6 === 0) {
-                    let semestralRate = Math.pow(1 + annualRate, 6/12) - 1;
-                    let coupon = current * semestralRate;
-                    totalCouponsPaid += coupon;
-                    // O valor do cupom cai na conta do investidor e não fica acumulando juros sobre juros no principal
-                    current = current - coupon; 
-                }
-                history.push(current + totalCouponsPaid);
-            }
-            return { finalGross: current, totalCouponsPaid, history };
-        }
-
-        function updateSimulation() {
-            const P = parseFloat(document.getElementById('initialAmount').value) || 0;
-            const PMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
-            const months = parseInt(document.getElementById('months').value) || 12;
-            const cdi = (parseFloat(document.getElementById('cdi').value) || 0) / 100;
-            const startDateVal = document.getElementById('startDate').value;
-
-            const totalInvested = P + (PMT * months);
-            const days = months * 30;
-            const irRate = getIRRate(days);
-
-            const activeAssets = Array.from(document.querySelectorAll('.asset-checkbox:checked')).map(cb => cb.value);
-
-            let investments = [];
-
-            if (activeAssets.includes('cdb')) {
-                const rate = (parseFloat(document.getElementById('cdbRate').value) || 0) / 100 * cdi;
-                const res = calculateCompoundInterest(P, PMT, rate, months);
-                investments.push({ id: 'cdb', name: 'CDB / LC', gross: res.finalGross, taxRate: irRate, coupons: 0, history: res.history, color: '#10b981' });
-            }
-
-            if (activeAssets.includes('lca')) {
-                const rate = (parseFloat(document.getElementById('lcaRate').value) || 0) / 100 * cdi;
-                const res = calculateCompoundInterest(P, PMT, rate, months);
-                investments.push({ id: 'lca', name: 'LCA / LCI (Pós)', gross: res.finalGross, taxRate: 0, coupons: 0, history: res.history, color: '#3b82f6' });
-            }
-
-            if (activeAssets.includes('lcaPre')) {
-                const rate = (parseFloat(document.getElementById('lcaPreRate').value) || 0) / 100;
-                const res = calculateCompoundInterest(P, PMT, rate, months);
-                investments.push({ id: 'lcaPre', name: 'LCA / LCI (Prefixada)', gross: res.finalGross, taxRate: 0, coupons: 0, history: res.history, color: '#06b6d4' });
-            }
-
-            if (activeAssets.includes('deb')) {
-                const rate = (parseFloat(document.getElementById('debRate').value) || 0) / 100;
-                const res = calculateCouponInterest(P, PMT, rate, months);
-                investments.push({ id: 'deb', name: 'Crédito Privado / Debênture', gross: res.finalGross, taxRate: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#e11d48' });
-            }
-
-            if (activeAssets.includes('poupanca')) {
-                const rate = (parseFloat(document.getElementById('poupancaRate').value) || 0) / 100;
-                const res = calculateCompoundInterest(P, PMT, rate, months);
-                investments.push({ id: 'poupanca', name: 'Poupança', gross: res.finalGross, taxRate: 0, coupons: 0, history: res.history, color: '#f59e0b' });
-            }
-
-            if (activeAssets.includes('fundo')) {
-                const rateCDI = (parseFloat(document.getElementById('fundoRate').value) || 0) / 100 * cdi;
-                const fee = (parseFloat(document.getElementById('fundoFee').value) || 0) / 100;
-                const rate = Math.max(0, rateCDI - fee);
-                const res = calculateCompoundInterest(P, PMT, rate, months);
-                investments.push({ id: 'fundo', name: 'Fundo Renda Fixa', gross: res.finalGross, taxRate: irRate, coupons: 0, history: res.history, color: '#8b5cf6' });
-            }
-
-            const results = investments.map(inv => {
-                const profitGross = (inv.gross + inv.coupons) - totalInvested;
-                const tax = profitGross > 0 ? profitGross * inv.taxRate : 0;
-                const net = (inv.gross + inv.coupons) - tax;
-                const netProfit = net - totalInvested;
-                const netReturnPct = (netProfit / totalInvested) * 100;
-
-                return { ...inv, totalInvested, tax, net, netProfit, netReturnPct };
-            });
-
-            // Cards Render
-            const cardsContainer = document.getElementById('cardsContainer');
-            cardsContainer.innerHTML = '';
-            const sortedResults = [...results].sort((a, b) => b.net - a.net);
-
-            results.forEach(res => {
-                const isBest = sortedResults.length > 0 && res.name === sortedResults[0].name;
-                const cardHtml = `
-                    <div class="bg-slate-800 p-5 rounded-2xl border ${isBest ? 'border-emerald-500/50 bg-slate-800/90' : 'border-slate-700'} shadow-lg relative overflow-hidden">
-                        ${isBest ? '<span class="absolute top-3 right-3 bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-semibold border border-emerald-500/20">Maior Retorno</span>' : ''}
-                        <h4 class="text-slate-400 text-sm font-medium mb-1">${res.name}</h4>
-                        <div class="text-2xl font-bold text-white mb-2">${formatCurrency(res.net)}</div>
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400">Lucro Líquido: <strong class="text-emerald-400 font-semibold">${formatCurrency(res.netProfit)}</strong></span>
-                            <span class="text-slate-400">Retorno: <strong class="text-slate-200 font-semibold">${formatPercent(res.netReturnPct)}</strong></span>
-                        </div>
-                        ${res.coupons > 0 ? `<div class="mt-2 text-xs text-rose-400 font-medium">Cupons Semestrais Sacados: ${formatCurrency(res.coupons)}</div>` : ''}
-                    </div>
-                `;
-                cardsContainer.innerHTML += cardHtml;
-            });
-
-            // Tabela Render
-            const tableBody = document.getElementById('resultsTable');
-            tableBody.innerHTML = '';
-
-            results.forEach(res => {
-                const row = `
-                    <tr class="hover:bg-slate-700/50 transition">
-                        <td class="py-3 px-4 font-semibold text-white">${res.name}</td>
-                        <td class="py-3 px-4">${formatCurrency(res.totalInvested)}</td>
-                        <td class="py-3 px-4">${formatCurrency(res.gross)}</td>
-                        <td class="py-3 px-4 text-rose-400">${formatCurrency(res.tax)} (${(res.taxRate * 100).toFixed(1)}%)</td>
-                        <td class="py-3 px-4 text-amber-400 font-medium">${res.coupons > 0 ? formatCurrency(res.coupons) : '-'}</td>
-                        <td class="py-3 px-4 font-bold text-emerald-400">${formatCurrency(res.net)}</td>
-                        <td class="py-3 px-4 font-semibold text-emerald-400">${formatPercent(res.netReturnPct)}</td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
-
-            renderChart(months, results, startDateVal);
-        }
-
-        function renderChart(months, results, startDateStr) {
-            const ctx = document.getElementById('growthChart').getContext('2d');
-            
-            // Gerar labels de datas baseadas na data inicial retroativa selecionada
-            const baseDate = startDateStr ? new Date(startDateStr) : new Date();
-            const labels = Array.from({ length: months + 1 }, (_, i) => {
-                const d = new Date(baseDate);
-                d.setMonth(d.getMonth() + i);
-                return d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-            });
-
-            const datasets = results.map(res => {
-                const netHistory = res.history.map((val, idx) => {
-                    if (idx === 0) return val;
-                    const investedUntilNow = parseFloat(document.getElementById('initialAmount').value) + (parseFloat(document.getElementById('monthlyAmount').value) * idx);
-                    const grossProfit = val - investedUntilNow;
-                    const tax = grossProfit > 0 ? grossProfit * res.taxRate : 0;
-                    return val - tax;
-                });
-
-                return {
-                    label: res.name,
-                    data: netHistory,
-                    borderColor: res.color,
-                    backgroundColor: res.color + '1A',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    pointRadius: 0
-                };
-            });
-
-            if (growthChart) growthChart.destroy();
-
-            growthChart = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { labels: { color: '#94a3b8' } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                        y: {
-                            grid: { color: '#334155' },
-                            ticks: {
-                                color: '#94a3b8',
-                                callback: value => 'R$ ' + value.toLocaleString('pt-BR')
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        document.getElementById('recalcBtn').addEventListener('click', updateSimulation);
-        document.getElementById('startDate').addEventListener('change', updateSimulation);
-        document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('input', updateSimulation);
-        });
-
-        // PWA Setup
-        let deferredPrompt;
-        const pwaBanner = document.getElementById('pwaBanner');
-        const installBtn = document.getElementById('installBtn');
-        const closeBannerBtn = document.getElementById('closeBannerBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            pwaBanner.classList.remove('hidden');
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                pwaBanner.classList.add('hidden');
-            }
-        });
-
-        closeBannerBtn.addEventListener('click', () => {
-            pwaBanner.classList.add('hidden');
-        });
-
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'simulador-pwa-v2';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW falhou:', err));
-        }
-
-        updateCheckboxLimits();
-    </script>
+<body>
+
+  <h2>Simulador de Títulos Privados com Cupons Semestrais</h2>
+
+  <div class="form-group">
+    <label for="valor">Valor do Investimento (R$):</label>
+    <input type="number" id="valor" value="10000" placeholder="Ex: 10000">
+  </div>
+
+  <div class="form-group">
+    <label for="prazo">Prazo (Meses):</label>
+    <input type="number" id="prazo" value="24" placeholder="Ex: 24">
+  </div>
+
+  <div class="form-group">
+    <label for="taxaPre">Taxa Pré-fixada (% a.a.):</label>
+    <input type="number" id="taxaPre" step="0.1" value="12" placeholder="Ex: 12">
+  </div>
+
+  <div class="form-group">
+    <label for="cdi">CDI (% a.a.):</label>
+    <input type="number" id="cdi" step="0.1" value="10.5" placeholder="Ex: 10.5">
+  </div>
+
+  <div class="form-group">
+    <label for="taxaPos">Spread Pós-fixado / Adicional (% a.a.):</label>
+    <input type="number" id="taxaPos" step="0.1" value="1.5" placeholder="Ex: 1.5">
+  </div>
+
+  <button onclick="executarSimulacao()">Simular e Gerar Parecer</button>
+
+  <!-- SEÇÃO DO PARECER DINÂMICO -->
+  <div id="parecer-container">
+    <h3>Parecer do Especialista</h3>
+    <ul style="padding-left: 20px; line-height: 1.6;">
+      <li><strong>Melhor Rentabilidade Líquida:</strong> A opção <span id="parecer-melhor-opcao">-</span> se destaca com o maior retorno final, totalizando <span id="parecer-valor-final">R$ 0,00</span>.</li>
+      <li><strong>Veredito:</strong> Para maximizar seus ganhos no período simulado, a opção <span id="parecer-recomendada">-</span> é a alternativa mais vantajosa.</li>
+    </ul>
+  </div>
+
+  <script>
+    // --- 1. FUNÇÃO PARA ATUALIZAR O PARECER NO HTML ---
+    function atualizarParecer(nomeMelhorOpcao, valorFinalFormatado) {
+      document.getElementById('parecer-melhor-opcao').textContent = nomeMelhorOpcao;
+      document.getElementById('parecer-valor-final').textContent = valorFinalFormatado;
+      document.getElementById('parecer-recomendada').textContent = nomeMelhorOpcao;
+      document.getElementById('parecer-container').style.display = 'block';
+    }
+
+    // --- 2. CÁLCULO DE TÍTULO PRIVADO PRÉ-FIXADO COM CUPOM SEMESTRAL ---
+    function calcularTituloPreComCupom(valorInicial, taxaAnual, prazoMeses) {
+      const taxaSemestral = Math.pow(1 + taxaAnual / 100, 0.5) - 1;
+      const numSemestres = Math.floor(prazoMeses / 6);
+      let totalCuponsAcumulados = 0;
+
+      for (let i = 1; i <= numSemestres; i++) {
+        const valorCupomBruto = valorInicial * taxaSemestral;
+        
+        // Tabela regressiva de IR
+        const mesesDecorridos = i * 6;
+        let aliquotaIR = 0.15;
+        if (mesesDecorridos <= 6) aliquotaIR = 0.225;
+        else if (mesesDecorridos <= 12) aliquotaIR = 0.20;
+        else if (mesesDecorridos <= 24) aliquotaIR = 0.175;
+
+        const valorCupomLiquido = valorCupomBruto * (1 - aliquotaIR);
+        totalCuponsAcumulados += valorCupomLiquido;
+      }
+
+      const valorFinalTotal = valorInicial + totalCuponsAcumulados;
+      
+      return {
+        tipo: "Título Privado Pré-fixado (com Cupons)",
+        valorFinal: valorFinalTotal
+      };
+    }
+
+    // --- 3. CÁLCULO DE TÍTULO PRIVADO PÓS-FIXADO (CDI + TAXA) COM CUPOM SEMESTRAL ---
+    function calcularTituloPosComCupom(valorInicial, cdiAnual, taxaAdicional, prazoMeses) {
+      const taxaTotalAnual = (1 + cdiAnual / 100) * (1 + taxaAdicional / 100) - 1;
+      const taxaSemestral = Math.pow(1 + taxaTotalAnual, 0.5) - 1;
+      const numSemestres = Math.floor(prazoMeses / 6);
+      let totalCuponsAcumulados = 0;
+
+      for (let i = 1; i <= numSemestres; i++) {
+        const valorCupomBruto = valorInicial * taxaSemestral;
+        
+        // Tabela regressiva de IR
+        const mesesDecorridos = i * 6;
+        let aliquotaIR = 0.15;
+        if (mesesDecorridos <= 6) aliquotaIR = 0.225;
+        else if (mesesDecorridos <= 12) aliquotaIR = 0.20;
+        else if (mesesDecorridos <= 24) aliquotaIR = 0.175;
+
+        const valorCupomLiquido = valorCupomBruto * (1 - aliquotaIR);
+        totalCuponsAcumulados += valorCupomLiquido;
+      }
+
+      const valorFinalTotal = valorInicial + totalCuponsAcumulados;
+
+      return {
+        tipo: "Título Privado Pós-fixado (com Cupons)",
+        valorFinal: valorFinalTotal
+      };
+    }
+
+    // --- 4. FUNÇÃO PRINCIPAL DE SIMULAÇÃO ---
+    function executarSimulacao() {
+      // Coleta dos valores informados nos campos do formulário
+      const valor = parseFloat(document.getElementById('valor').value) || 0;
+      const prazo = parseInt(document.getElementById('prazo').value) || 0;
+      const taxaPre = parseFloat(document.getElementById('taxaPre').value) || 0;
+      const cdi = parseFloat(document.getElementById('cdi').value) || 0;
+      const taxaPos = parseFloat(document.getElementById('taxaPos').value) || 0;
+
+      // Realiza os dois cálculos
+      const resultadoPre = calcularTituloPreComCupom(valor, taxaPre, prazo);
+      const resultadoPos = calcularTituloPosComCupom(valor, cdi, taxaPos, prazo);
+
+      // Identifica a melhor opção
+      const melhorOpcao = resultadoPre.valorFinal > resultadoPos.valorFinal ? resultadoPre : resultadoPos;
+
+      // Formata o resultado para moeda brasileira
+      const valorFormatado = melhorOpcao.valorFinal.toLocaleString('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+      });
+
+      // Atualiza a interface
+      atualizarParecer(melhorOpcao.tipo, valorFormatado);
+    }
+  </script>
 </body>
 </html>
-
