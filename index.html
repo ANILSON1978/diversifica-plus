@@ -1,316 +1,3 @@
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Comparador de Investimentos</title>
-    
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Investimentos">
-    
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Simulador de Investimentos","short_name":"Investimentos","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#0f172a","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2489/2489756.png","sizes":"512x512","type":"image/png"}]}'>
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-    </style>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 select-none">
-
-    <div id="pwaBanner" class="hidden bg-emerald-600 text-slate-950 px-4 py-3 font-medium flex justify-between items-center shadow-lg border-b border-emerald-400">
-        <div class="text-xs sm:text-sm font-semibold flex items-center gap-2">
-            <span>📲 Instale este app na sua tela inicial para acessar rápido!</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <button id="installBtn" class="bg-slate-950 text-emerald-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-slate-900 transition">Instalar</button>
-            <button id="closeBannerBtn" class="text-slate-950 hover:text-slate-800 text-lg px-1 font-bold">&times;</button>
-        </div>
-    </div>
-
-    <header class="bg-slate-800 border-b border-slate-700 py-6 mb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa & Crédito Privado</h1>
-            <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais, LCA Pré, datas retroativas e limite de 4 ativos visíveis.</p>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            <!-- Painel de Inputs -->
-            <div class="lg:col-span-4 space-y-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl h-fit">
-                
-                <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
-                    <h2 class="text-xl font-semibold text-white">Parâmetros Gerais</h2>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label for="startDate" class="block text-sm font-medium text-slate-300 mb-1">Data Inicial (Pode ser retroativa)</label>
-                        <input type="date" id="startDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-
-                    <div>
-                        <label for="initialAmount" class="block text-sm font-medium text-slate-300 mb-1">Valor Inicial (R$)</label>
-                        <input type="number" id="initialAmount" value="10000" step="500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-
-                    <div>
-                        <label for="monthlyAmount" class="block text-sm font-medium text-slate-300 mb-1">Aporte Mensal (R$)</label>
-                        <input type="number" id="monthlyAmount" value="500" step="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-
-                    <div>
-                        <label for="months" class="block text-sm font-medium text-slate-300 mb-1">Prazo do Investimento</label>
-                        <select id="months" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                            <option value="6">6 meses</option>
-                            <option value="12" selected>12 meses (1 ano)</option>
-                            <option value="24">24 meses (2 anos)</option>
-                            <option value="36">36 meses (3 anos)</option>
-                            <option value="48">48 meses (4 anos)</option>
-                            <option value="60">60 meses (5 anos)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="cdi" class="block text-sm font-medium text-slate-300 mb-1">Taxa CDI Atual (% a.a.)</label>
-                        <input type="number" id="cdi" value="10.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-                </div>
-
-                <hr class="border-slate-700">
-
-                <!-- Seleção de 4 Ativos -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-md font-semibold text-white">Escolha até 4 Ativos</h3>
-                        <span id="selectedCount" class="text-xs font-bold text-emerald-400 bg-slate-900 px-2 py-1 rounded">4/4 selecionados</span>
-                    </div>
-                    
-                    <div class="space-y-2 text-sm" id="checkboxGroup">
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="cdb" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> CDB / LC
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="lca" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Pós-Fixada)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="lcaPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Prefixada)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPre" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré (Cupons Semestrais)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós (Cupons Semestrais)
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="poupanca" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Poupança
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="fundo" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Fundo Renda Fixa
-                        </label>
-                    </div>
-                </div>
-
-                <hr class="border-slate-700">
-
-                <h3 class="text-lg font-medium text-white">Taxas dos Ativos</h3>
-
-                <div class="space-y-4 text-sm">
-                    <div id="input_cdb">
-                        <label for="cdbRate" class="block text-slate-300 mb-1">CDB / LC (% do CDI)</label>
-                        <input type="number" id="cdbRate" value="100" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_lca">
-                        <label for="lcaRate" class="block text-slate-300 mb-1">LCA / LCI Pós (% do CDI - Isento IR)</label>
-                        <input type="number" id="lcaRate" value="90" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_lcaPre" class="hidden">
-                        <label for="lcaPreRate" class="block text-slate-300 mb-1">LCA / LCI Prefixada (% a.a. fixo - Isento IR)</label>
-                        <input type="number" id="lcaPreRate" value="9.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_debPre">
-                        <label for="debPreRate" class="block text-slate-300 mb-1">Crédito Privado Pré (% a.a. fixo + Cupons)</label>
-                        <input type="number" id="debPreRate" value="12.0" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_debPos">
-                        <label for="debPosRate" class="block text-slate-300 mb-1">Crédito Privado Pós Spread Adicional (% a.a. sobre CDI + Cupons)</label>
-                        <input type="number" id="debPosRate" value="1.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_poupanca" class="hidden">
-                        <label for="poupancaRate" class="block text-slate-300 mb-1">Poupança (% a.a. fixo)</label>
-                        <input type="number" id="poupancaRate" value="6.17" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div id="input_fundo" class="hidden">
-                        <label for="fundoRate" class="block text-slate-300 mb-1">Fundo RF (% do CDI)</label>
-                        <input type="number" id="fundoRate" value="105" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                        <label for="fundoFee" class="block text-slate-300 mt-2 mb-1">Taxa Adm Fundo (% a.a.)</label>
-                        <input type="number" id="fundoFee" value="0.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                </div>
-
-                <button id="recalcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg transition duration-200">
-                    Recalcular Simulação
-                </button>
-            </div>
-
-            <!-- Painel de Resultados -->
-            <div class="lg:col-span-8 space-y-8">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cardsContainer"></div>
-
-                <!-- SEÇÃO DO PARECER DO ESPECIALISTA -->
-                <div id="parecerContainer" class="bg-emerald-950/40 border border-emerald-500/30 p-6 rounded-2xl shadow-xl">
-                    <h3 class="text-lg font-bold text-emerald-400 mb-2 flex items-center gap-2">
-                        💡 Parecer do Especialista
-                    </h3>
-                    <ul class="text-sm text-slate-300 space-y-2">
-                        <li><strong>Melhor Rentabilidade Líquida:</strong> A opção <span id="parecerMelhorOpcao" class="font-bold text-emerald-400">-</span> se destaca com o maior retorno final, totalizando <span id="parecerValorFinal" class="font-bold text-emerald-400">R$ 0,00</span>.</li>
-                        <li><strong>Veredito:</strong> Para maximizar seus ganhos no período simulado, a opção <span id="parecerRecomendada" class="font-bold text-emerald-400">-</span> é a alternativa mais rentável para o seu perfil simulado.</li>
-                    </ul>
-                </div>
-
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">Evolução do Patrimônio Líquido (Acumulado)</h3>
-                    <div class="relative h-72 sm:h-80">
-                        <canvas id="growthChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
-                    <h3 class="text-lg font-semibold text-white mb-4">Tabela Comparativa Completa</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="bg-slate-900 text-slate-400 uppercase text-xs font-semibold">
-                                <tr>
-                                    <th class="py-3 px-4">Investimento</th>
-                                    <th class="py-3 px-4">Total Investido</th>
-                                    <th class="py-3 px-4">Valor Bruto</th>
-                                    <th class="py-3 px-4">Imposto (IR)</th>
-                                    <th class="py-3 px-4">Cupons Pagos</th>
-                                    <th class="py-3 px-4">Valor Líquido</th>
-                                    <th class="py-3 px-4">Retorno (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultsTable" class="divide-y divide-slate-700"></tbody>
-                        </table>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-4">* LCAs/LCIs são isentas de Imposto de Renda. Os cupons de crédito privado incidem IR regressivo na fonte a cada 6 meses.</p>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <script>
-        let growthChart = null;
-
-        // Definir data retroativa padrão (hoje)
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('startDate').value = today;
-
-        function getIRRate(days) {
-            if (days <= 180) return 0.225;
-            if (days <= 360) return 0.20;
-            if (days <= 720) return 0.175;
-            return 0.15;
-        }
-
-        function formatCurrency(val) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-        }
-
-        function formatPercent(val) {
-            return val.toFixed(2).replace('.', ',') + '%';
-        }
-
-        // Lógica de limite de 4 checkboxes + esconder inputs
-        const checkboxes = document.querySelectorAll('.asset-checkbox');
-        const selectedCountEl = document.getElementById('selectedCount');
-
-        function updateCheckboxLimits() {
-            const checked = document.querySelectorAll('.asset-checkbox:checked');
-            selectedCountEl.textContent = `${checked.length}/4 selecionados`;
-
-            checkboxes.forEach(cb => {
-                const inputDiv = document.getElementById(`input_${cb.value}`);
-                if (cb.checked) {
-                    if (inputDiv) inputDiv.classList.remove('hidden');
-                } else {
-                    if (inputDiv) inputDiv.classList.add('hidden');
-                }
-
-                if (checked.length >= 4 && !cb.checked) {
-                    cb.disabled = true;
-                    cb.parentElement.classList.add('opacity-40', 'cursor-not-allowed');
-                } else {
-                    cb.disabled = false;
-                    cb.parentElement.classList.remove('opacity-40', 'cursor-not-allowed');
-                }
-            });
-
-            updateSimulation();
-        }
-
-        checkboxes.forEach(cb => cb.addEventListener('change', updateCheckboxLimits));
-
-        // Cálculo composto padrão
-        function calculateCompoundInterest(P, PMT, annualRate, months) {
-            let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
-            let history = [P];
-            let current = P;
-
-            for (let m = 1; m <= months; m++) {
-                current = current * (1 + monthlyRate) + PMT;
-                history.push(current);
-            }
-            return { finalGross: current, history };
-        }
-
-        // Cálculo com Cupons Semestrais e IR Incidente no Cupom
-        function calculateCouponInterest(P, PMT, annualRate, months) {
-            let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
-            let history = [P];
-            let current = P;
-            let totalNetCouponsPaid = 0;
-            let totalTaxPaid = 0;
-
-            for (let m = 1; m <= months; m++) {
-                current = current * (1 + monthlyRate) + PMT;
-                
-                // A cada 6 meses, calcula o cupom
-                if (m % 6 === 0) {
-                    let semestralRate = Math.pow(1 + annualRate, 6/12) - 1;
-                    let grossCoupon = current * semestralRate;
-                    
-                    // IR regressivo para o cupom
-                    let ir = getIRRate(m * 30);
-                    let tax = grossCoupon * ir;
-                    let netCoupon = grossCoupon - tax;
-
-                    totalNetCouponsPaid += netCoupon;
-                    totalTaxPaid += tax;
-
-                    // O valor bruto do cupom sai do principal acumulado
-                    current = current - grossCoupon; 
-                }
-                history.push(current + totalNetCouponsPaid);
-            }
-            return { finalGross: current, totalCouponsPaid: totalNetCouponsPaid, totalTaxPaid, history };
-        }
-
         function updateSimulation() {
             const P = parseFloat(document.getElementById('initialAmount').value) || 0;
             const PMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
@@ -436,21 +123,34 @@
         function renderChart(months, results, startDateStr) {
             const ctx = document.getElementById('growthChart').getContext('2d');
             
-            const baseDate = startDateStr ? new Date(startDateStr) : new Date();
+            // Correção na data para evitar pulos de mês no dia 31
+            const baseDate = startDateStr ? new Date(startDateStr + 'T00:00:00') : new Date();
             const labels = Array.from({ length: months + 1 }, (_, i) => {
                 const d = new Date(baseDate);
+                d.setDate(1); // Normaliza para o dia 1
                 d.setMonth(d.getMonth() + i);
                 return d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
             });
 
+            const initialP = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const monthlyPMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+
             const datasets = results.map(res => {
                 const netHistory = res.history.map((val, idx) => {
                     if (idx === 0) return val;
-                    if (res.customTax !== undefined) return val; // Para cupons, o líquido já é calculado mês a mês no histórico
                     
-                    const investedUntilNow = parseFloat(document.getElementById('initialAmount').value) + (parseFloat(document.getElementById('monthlyAmount').value) * idx);
+                    // Se for ativo de cupom, o IR já foi descontado na fonte no momento do cupom
+                    if (res.customTax !== undefined) {
+                        return val;
+                    }
+                    
+                    // Para demais ativos, calcula o IR sobre o lucro acumulado até o mês atual (idx)
+                    const investedUntilNow = initialP + (monthlyPMT * idx);
                     const grossProfit = val - investedUntilNow;
-                    const tax = grossProfit > 0 ? grossProfit * res.taxRate : 0;
+                    const currentDays = idx * 30;
+                    const currentIRRate = getIRRate(currentDays);
+                    const tax = grossProfit > 0 ? grossProfit * currentIRRate : 0;
+                    
                     return val - tax;
                 });
 
@@ -497,54 +197,3 @@
                 }
             });
         }
-
-        document.getElementById('recalcBtn').addEventListener('click', updateSimulation);
-        document.getElementById('startDate').addEventListener('change', updateSimulation);
-        document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('input', updateSimulation);
-        });
-
-        // PWA Setup
-        let deferredPrompt;
-        const pwaBanner = document.getElementById('pwaBanner');
-        const installBtn = document.getElementById('installBtn');
-        const closeBannerBtn = document.getElementById('closeBannerBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            pwaBanner.classList.remove('hidden');
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                pwaBanner.classList.add('hidden');
-            }
-        });
-
-        closeBannerBtn.addEventListener('click', () => {
-            pwaBanner.classList.add('hidden');
-        });
-
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'simulador-pwa-v2';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW falhou:', err));
-        }
-
-        updateCheckboxLimits();
-    </script>
-</body>
-</html>
-
