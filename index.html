@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -103,10 +104,10 @@
                             <input type="checkbox" value="lcaPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Prefixada)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPre" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré (Cupons Semestrais)
+                            <input type="checkbox" value="debPre" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré (Isento - Cupons)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós (Cupons Semestrais)
+                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós (Isento - Cupons)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
                             <input type="checkbox" value="poupanca" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Poupança
@@ -138,12 +139,12 @@
                     </div>
 
                     <div id="input_debPre">
-                        <label for="debPreRate" class="block text-slate-300 mb-1">Crédito Privado Pré (% a.a. fixo + Cupons)</label>
+                        <label for="debPreRate" class="block text-slate-300 mb-1">Crédito Privado Pré (% a.a. fixo + Cupons - Isento IR)</label>
                         <input type="number" id="debPreRate" value="12.0" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
                     <div id="input_debPos">
-                        <label for="debPosRate" class="block text-slate-300 mb-1">Crédito Privado Pós Spread Adicional (% a.a. sobre CDI + Cupons)</label>
+                        <label for="debPosRate" class="block text-slate-300 mb-1">Crédito Privado Pós Spread (% a.a. sobre CDI + Cupons - Isento IR)</label>
                         <input type="number" id="debPosRate" value="1.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
@@ -206,7 +207,7 @@
                             <tbody id="resultsTable" class="divide-y divide-slate-700"></tbody>
                         </table>
                     </div>
-                    <p class="text-xs text-slate-400 mt-4">* LCAs/LCIs são isentas de Imposto de Renda. Os cupons de crédito privado incidem IR regressivo na fonte a cada 6 meses.</p>
+                    <p class="text-xs text-slate-400 mt-4">* LCAs/LCIs, Poupança e Crédito Privado Incentivado (como Debêntures Incentivadas, CRI e CRA) são 100% isentos de Imposto de Renda para Pessoas Físicas.</p>
                 </div>
 
             </div>
@@ -278,13 +279,12 @@
             return { finalGross: current, history };
         }
 
-        // Cálculo com Cupons Semestrais e IR Incidente no Cupom
+        // Cálculo com Cupons Semestrais ISENTOS de IR
         function calculateCouponInterest(P, PMT, annualRate, months) {
             let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
             let history = [P];
             let current = P;
-            let totalNetCouponsPaid = 0;
-            let totalTaxPaid = 0;
+            let totalCouponsPaid = 0;
 
             for (let m = 1; m <= months; m++) {
                 current = current * (1 + monthlyRate) + PMT;
@@ -294,20 +294,15 @@
                     let semestralRate = Math.pow(1 + annualRate, 6/12) - 1;
                     let grossCoupon = current * semestralRate;
                     
-                    // IR regressivo para o cupom
-                    let ir = getIRRate(m * 30);
-                    let tax = grossCoupon * ir;
-                    let netCoupon = grossCoupon - tax;
+                    // Isento de IR: Cupom líquido = Cupom bruto
+                    totalCouponsPaid += grossCoupon;
 
-                    totalNetCouponsPaid += netCoupon;
-                    totalTaxPaid += tax;
-
-                    // O valor bruto do cupom sai do principal acumulado
+                    // O valor do cupom sai do principal acumulado
                     current = current - grossCoupon; 
                 }
-                history.push(current + totalNetCouponsPaid);
+                history.push(current + totalCouponsPaid);
             }
-            return { finalGross: current, totalCouponsPaid: totalNetCouponsPaid, totalTaxPaid, history };
+            return { finalGross: current, totalCouponsPaid, totalTaxPaid: 0, history };
         }
 
         function updateSimulation() {
@@ -346,14 +341,14 @@
             if (activeAssets.includes('debPre')) {
                 const rate = (parseFloat(document.getElementById('debPreRate').value) || 0) / 100;
                 const res = calculateCouponInterest(P, PMT, rate, months);
-                investments.push({ id: 'debPre', name: 'Crédito Privado Pré (Cupons)', gross: res.finalGross, taxRate: 0, customTax: res.totalTaxPaid, coupons: res.totalCouponsPaid, history: res.history, color: '#e11d48' });
+                investments.push({ id: 'debPre', name: 'Crédito Privado Pré (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#e11d48' });
             }
 
             if (activeAssets.includes('debPos')) {
                 const spread = (parseFloat(document.getElementById('debPosRate').value) || 0) / 100;
                 const totalRate = (1 + cdi) * (1 + spread) - 1;
                 const res = calculateCouponInterest(P, PMT, totalRate, months);
-                investments.push({ id: 'debPos', name: 'Crédito Privado Pós (Cupons)', gross: res.finalGross, taxRate: 0, customTax: res.totalTaxPaid, coupons: res.totalCouponsPaid, history: res.history, color: '#f43f5e' });
+                investments.push({ id: 'debPos', name: 'Crédito Privado Pós (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#f43f5e' });
             }
 
             if (activeAssets.includes('poupanca')) {
@@ -373,7 +368,7 @@
             const results = investments.map(inv => {
                 const profitGross = (inv.gross + inv.coupons) - totalInvested;
                 const tax = inv.customTax !== undefined ? inv.customTax : (profitGross > 0 ? profitGross * inv.taxRate : 0);
-                const net = (inv.gross + inv.coupons) - (inv.customTax !== undefined ? 0 : tax);
+                const net = (inv.gross + inv.coupons) - tax;
                 const netProfit = net - totalInvested;
                 const netReturnPct = (netProfit / totalInvested) * 100;
 
@@ -396,7 +391,7 @@
                             <span class="text-slate-400">Lucro Líquido: <strong class="text-emerald-400 font-semibold">${formatCurrency(res.netProfit)}</strong></span>
                             <span class="text-slate-400">Retorno: <strong class="text-slate-200 font-semibold">${formatPercent(res.netReturnPct)}</strong></span>
                         </div>
-                        ${res.coupons > 0 ? `<div class="mt-2 text-xs text-rose-400 font-medium">Cupons Líquidos Sacados: ${formatCurrency(res.coupons)}</div>` : ''}
+                        ${res.coupons > 0 ? `<div class="mt-2 text-xs text-emerald-400 font-medium">Cupons Isentos Sacados: ${formatCurrency(res.coupons)}</div>` : ''}
                     </div>
                 `;
                 cardsContainer.innerHTML += cardHtml;
@@ -420,7 +415,7 @@
                         <td class="py-3 px-4 font-semibold text-white">${res.name}</td>
                         <td class="py-3 px-4">${formatCurrency(res.totalInvested)}</td>
                         <td class="py-3 px-4">${formatCurrency(res.gross)}</td>
-                        <td class="py-3 px-4 text-rose-400">${formatCurrency(res.tax)}</td>
+                        <td class="py-3 px-4 ${res.tax > 0 ? 'text-rose-400' : 'text-slate-500'}">${formatCurrency(res.tax)}</td>
                         <td class="py-3 px-4 text-amber-400 font-medium">${res.coupons > 0 ? formatCurrency(res.coupons) : '-'}</td>
                         <td class="py-3 px-4 font-bold text-emerald-400">${formatCurrency(res.net)}</td>
                         <td class="py-3 px-4 font-semibold text-emerald-400">${formatPercent(res.netReturnPct)}</td>
@@ -435,21 +430,27 @@
         function renderChart(months, results, startDateStr) {
             const ctx = document.getElementById('growthChart').getContext('2d');
             
-            const baseDate = startDateStr ? new Date(startDateStr) : new Date();
+            const baseDate = startDateStr ? new Date(startDateStr + 'T00:00:00') : new Date();
             const labels = Array.from({ length: months + 1 }, (_, i) => {
                 const d = new Date(baseDate);
+                d.setDate(1);
                 d.setMonth(d.getMonth() + i);
                 return d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
             });
 
+            const initialP = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const monthlyPMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+
             const datasets = results.map(res => {
                 const netHistory = res.history.map((val, idx) => {
                     if (idx === 0) return val;
-                    if (res.customTax !== undefined) return val; // Para cupons, o líquido já é calculado mês a mês no histórico
+                    if (res.taxRate === 0) return val; // Se isento de IR (inclusive cupons), o histórico já é o valor final líquido
                     
-                    const investedUntilNow = parseFloat(document.getElementById('initialAmount').value) + (parseFloat(document.getElementById('monthlyAmount').value) * idx);
+                    const investedUntilNow = initialP + (monthlyPMT * idx);
                     const grossProfit = val - investedUntilNow;
-                    const tax = grossProfit > 0 ? grossProfit * res.taxRate : 0;
+                    const currentDays = idx * 30;
+                    const currentIRRate = getIRRate(currentDays);
+                    const tax = grossProfit > 0 ? grossProfit * currentIRRate : 0;
                     return val - tax;
                 });
 
@@ -531,7 +532,7 @@
             const swCode = `
                 const CACHE_NAME = 'simulador-pwa-v2';
                 self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
+                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])).catch(() => {}));
                 });
                 self.addEventListener('fetch', e => {
                     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
