@@ -19,11 +19,53 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        /* Estilos específicos para Impressão / Salvar em PDF */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+                padding-bottom: 0 !important;
+            }
+            /* Oculta elementos que não precisam ir para o PDF */
+            .no-print, header, #pwaBanner, #recalcBtn, .lg\:col-span-4 {
+                display: none !important;
+            }
+            /* Ajusta a largura dos resultados para ocupar a página toda */
+            .lg\:col-span-8 {
+                width: 100% !important;
+                grid-column: span 12 / span 12 !important;
+            }
+            /* Ajusta cores do PDF para economizar tinta e facilitar a leitura */
+            .bg-slate-800, .bg-emerald-950\/40 {
+                background-color: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+                box-shadow: none !important;
+            }
+            .text-white, .text-slate-300, .text-slate-400 {
+                color: #0f172a !important;
+            }
+            .text-emerald-400 {
+                color: #059669 !important;
+            }
+            table th {
+                background-color: #e2e8f0 !important;
+                color: #0f172a !important;
+            }
+            table td {
+                border-bottom: 1px solid #e2e8f0 !important;
+            }
+            /* Força a quebra de página de forma limpa se necessário */
+            .page-break {
+                page-break-before: always;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen pb-12 select-none">
 
-    <div id="pwaBanner" class="hidden bg-emerald-600 text-slate-950 px-4 py-3 font-medium flex justify-between items-center shadow-lg border-b border-emerald-400">
+    <div id="pwaBanner" class="hidden bg-emerald-600 text-slate-950 px-4 py-3 font-medium flex justify-between items-center shadow-lg border-b border-emerald-400 no-print">
         <div class="text-xs sm:text-sm font-semibold flex items-center gap-2">
             <span>📲 Instale este app na sua tela inicial para acessar rápido!</span>
         </div>
@@ -34,9 +76,14 @@
     </div>
 
     <header class="bg-slate-800 border-b border-slate-700 py-6 mb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa & Crédito Privado</h1>
-            <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais, LCA Pré, datas retroativas e oscilação visual de cupons.</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa & Crédito Privado</h1>
+                <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais (Pré, Pós e IPCA+), LCA Pré, datas retroativas e oscilação visual.</p>
+            </div>
+            <button onclick="window.print()" class="no-print bg-slate-700 hover:bg-slate-600 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow-lg">
+                🖨️ Imprimir / Salvar PDF
+            </button>
         </div>
     </header>
 
@@ -78,9 +125,15 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label for="cdi" class="block text-sm font-medium text-slate-300 mb-1">Taxa CDI Atual (% a.a.)</label>
-                        <input type="number" id="cdi" value="10.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label for="cdi" class="block text-sm font-medium text-slate-300 mb-1">CDI (% a.a.)</label>
+                            <input type="number" id="cdi" value="10.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div>
+                            <label for="ipca" class="block text-sm font-medium text-slate-300 mb-1">IPCA (% a.a.)</label>
+                            <input type="number" id="ipca" value="4.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
                     </div>
                 </div>
 
@@ -104,10 +157,13 @@
                             <input type="checkbox" value="lcaPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Prefixada)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPre" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré (Isento - Cupons)
+                            <input type="checkbox" value="debPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré (Cupons)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós (Isento - Cupons)
+                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós (Cupons)
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+                            <input type="checkbox" value="debIpca" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado IPCA+ (Cupons)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
                             <input type="checkbox" value="poupanca" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Poupança
@@ -138,7 +194,7 @@
                         <input type="number" id="lcaPreRate" value="9.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
-                    <div id="input_debPre">
+                    <div id="input_debPre" class="hidden">
                         <label for="debPreRate" class="block text-slate-300 mb-1">Crédito Privado Pré (% a.a. fixo + Cupons - Isento IR)</label>
                         <input type="number" id="debPreRate" value="12.0" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
@@ -148,12 +204,20 @@
                         <input type="number" id="debPosRate" value="1.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
+                    <div id="input_debIpca">
+                        <label for="debIpcaRate" class="block text-slate-300 mb-1">Crédito Privado IPCA+ (Taxa fixa + IPCA + Cupons - Isento IR)</label>
+                        <input type="number" id="debIpcaRate" value="6.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+
                     <div id="input_poupanca" class="hidden">
                         <label for="poupancaRate" class="block text-slate-300 mb-1">Poupança (% a.a. fixo)</label>
                         <input type="number" id="poupancaRate" value="6.17" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
                     <div id="input_fundo" class="hidden">
+                        <label for="fundoCnpj" class="block text-slate-300 mb-1">CNPJ do Fundo (Opcional)</label>
+                        <input type="text" id="fundoCnpj" placeholder="00.000.000/0001-00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 mb-2">
+                        
                         <label for="fundoRate" class="block text-slate-300 mb-1">Fundo RF (% do CDI)</label>
                         <input type="number" id="fundoRate" value="105" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                         <label for="fundoFee" class="block text-slate-300 mt-2 mb-1">Taxa Adm Fundo (% a.a.)</label>
@@ -209,6 +273,12 @@
                         </table>
                     </div>
                     <p class="text-xs text-slate-400 mt-4">* LCAs/LCIs, Poupança e Crédito Privado Incentivado (como Debêntures Incentivadas, CRI e CRA) são 100% isentos de Imposto de Renda para Pessoas Físicas.</p>
+                </div>
+
+                <div class="no-print text-center pt-4">
+                    <button onclick="window.print()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg inline-flex items-center gap-2">
+                        🖨️ Salvar Relatório em PDF
+                    </button>
                 </div>
 
             </div>
@@ -277,7 +347,6 @@
             return { finalGross: current, history };
         }
 
-        // Ajustado para refletir a oscilação do saldo no histórico
         function calculateCouponInterest(P, PMT, annualRate, months) {
             let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
             let history = [P];
@@ -287,15 +356,14 @@
             for (let m = 1; m <= months; m++) {
                 current = current * (1 + monthlyRate) + PMT;
                 
-                // A cada 6 meses o cupom é destacado e sai do saldo do título
                 if (m % 6 === 0) {
                     let semestralRate = Math.pow(1 + annualRate, 6/12) - 1;
                     let grossCoupon = current * semestralRate;
                     
                     totalCouponsPaid += grossCoupon;
-                    current = current - grossCoupon; // O valor é sacado do ativo
+                    current = current - grossCoupon;
                 }
-                history.push(current); // Armazena o saldo real restante no ativo para criar a queda no gráfico
+                history.push(current);
             }
             return { finalGross: current, totalCouponsPaid, totalTaxPaid: 0, history };
         }
@@ -305,6 +373,7 @@
             const PMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
             const months = parseInt(document.getElementById('months').value) || 12;
             const cdi = (parseFloat(document.getElementById('cdi').value) || 0) / 100;
+            const ipca = (parseFloat(document.getElementById('ipca').value) || 0) / 100;
             const startDateVal = document.getElementById('startDate').value;
 
             const totalInvested = P + (PMT * months);
@@ -346,6 +415,13 @@
                 investments.push({ id: 'debPos', name: 'Crédito Privado Pós (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#f43f5e' });
             }
 
+            if (activeAssets.includes('debIpca')) {
+                const fixedSpread = (parseFloat(document.getElementById('debIpcaRate').value) || 0) / 100;
+                const totalRate = (1 + ipca) * (1 + fixedSpread) - 1;
+                const res = calculateCouponInterest(P, PMT, totalRate, months);
+                investments.push({ id: 'debIpca', name: 'Crédito Privado IPCA+ (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#a855f7' });
+            }
+
             if (activeAssets.includes('poupanca')) {
                 const rate = (parseFloat(document.getElementById('poupancaRate').value) || 0) / 100;
                 const res = calculateCompoundInterest(P, PMT, rate, months);
@@ -357,7 +433,7 @@
                 const fee = (parseFloat(document.getElementById('fundoFee').value) || 0) / 100;
                 const rate = Math.max(0, rateCDI - fee);
                 const res = calculateCompoundInterest(P, PMT, rate, months);
-                investments.push({ id: 'fundo', name: 'Fundo Renda Fixa', gross: res.finalGross, taxRate: irRate, coupons: 0, history: res.history, color: '#8b5cf6' });
+                investments.push({ id: 'fundo', name: 'Fundo Renda Fixa', gross: res.finalGross, taxRate: irRate, coupons: 0, history: res.history, color: '#6366f1' });
             }
 
             const results = investments.map(inv => {
@@ -455,7 +531,7 @@
                     borderColor: res.color,
                     backgroundColor: res.color + '1A',
                     borderWidth: 2,
-                    tension: 0.1, // Linha mais direta para evidenciar as quedas nos cupons
+                    tension: 0.1,
                     pointRadius: 1
                 };
             });
@@ -525,7 +601,7 @@
 
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'simulador-pwa-v3';
+                const CACHE_NAME = 'simulador-pwa-v5';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])).catch(() => {}));
                 });
