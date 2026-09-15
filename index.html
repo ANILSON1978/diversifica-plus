@@ -56,7 +56,6 @@
             table td {
                 border-bottom: 1px solid #e2e8f0 !important;
             }
-            /* Força a quebra de página de forma limpa se necessário */
             .page-break {
                 page-break-before: always;
             }
@@ -116,12 +115,20 @@
                     <div>
                         <label for="months" class="block text-sm font-medium text-slate-300 mb-1">Prazo do Investimento</label>
                         <select id="months" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <option value="3">3 meses</option>
                             <option value="6">6 meses</option>
+                            <option value="9">9 meses</option>
                             <option value="12" selected>12 meses (1 ano)</option>
+                            <option value="18">18 meses (1,5 ano)</option>
                             <option value="24">24 meses (2 anos)</option>
                             <option value="36">36 meses (3 anos)</option>
                             <option value="48">48 meses (4 anos)</option>
                             <option value="60">60 meses (5 anos)</option>
+                            <option value="72">72 meses (6 anos)</option>
+                            <option value="84">84 meses (7 anos)</option>
+                            <option value="96">96 meses (8 anos)</option>
+                            <option value="108">108 meses (9 anos)</option>
+                            <option value="120">120 meses (10 anos)</option>
                         </select>
                     </div>
 
@@ -601,7 +608,7 @@
 
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'simulador-pwa-v5';
+                const CACHE_NAME = 'simulador-pwa-v6';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])).catch(() => {}));
                 });
