@@ -20,23 +20,19 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-        /* Estilos específicos para Impressão / Salvar em PDF */
         @media print {
             body {
                 background-color: #ffffff !important;
                 color: #0f172a !important;
                 padding-bottom: 0 !important;
             }
-            /* Oculta elementos que não precisam ir para o PDF */
             .no-print, header, #pwaBanner, #recalcBtn, .lg\:col-span-4 {
                 display: none !important;
             }
-            /* Ajusta a largura dos resultados para ocupar a página toda */
             .lg\:col-span-8 {
                 width: 100% !important;
                 grid-column: span 12 / span 12 !important;
             }
-            /* Ajusta cores do PDF para economizar tinta e facilitar a leitura */
             .bg-slate-800, .bg-emerald-950\/40 {
                 background-color: #f8fafc !important;
                 border: 1px solid #cbd5e1 !important;
@@ -78,7 +74,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa & Crédito Privado</h1>
-                <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais (Pré, Pós e IPCA+), LCA Pré, datas retroativas e oscilação visual.</p>
+                <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais ou acúmulo (Pré, Pós e IPCA+), LCA Pré, datas retroativas e prazos de até 20 anos.</p>
             </div>
             <button onclick="window.print()" class="no-print bg-slate-700 hover:bg-slate-600 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow-lg">
                 🖨️ Imprimir / Salvar PDF
@@ -129,6 +125,10 @@
                             <option value="96">96 meses (8 anos)</option>
                             <option value="108">108 meses (9 anos)</option>
                             <option value="120">120 meses (10 anos)</option>
+                            <option value="144">144 meses (12 anos)</option>
+                            <option value="180">180 meses (15 anos)</option>
+                            <option value="216">216 meses (18 anos)</option>
+                            <option value="240">240 meses (20 anos)</option>
                         </select>
                     </div>
 
@@ -164,13 +164,13 @@
                             <input type="checkbox" value="lcaPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> LCA / LCI (Prefixada)
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré (Cupons)
+                            <input type="checkbox" value="debPre" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pré
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós (Cupons)
+                            <input type="checkbox" value="debPos" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado Pós
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-                            <input type="checkbox" value="debIpca" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado IPCA+ (Cupons)
+                            <input type="checkbox" value="debIpca" checked class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Crédito Privado IPCA+
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300">
                             <input type="checkbox" value="poupanca" class="asset-checkbox accent-emerald-500 w-4 h-4 rounded"> Poupança
@@ -201,19 +201,46 @@
                         <input type="number" id="lcaPreRate" value="9.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
-                    <div id="input_debPre" class="hidden">
-                        <label for="debPreRate" class="block text-slate-300 mb-1">Crédito Privado Pré (% a.a. fixo + Cupons - Isento IR)</label>
+                    <!-- Crédito Privado Pré -->
+                    <div id="input_debPre" class="hidden space-y-2">
+                        <label for="debPreRate" class="block text-slate-300 mb-1">Crédito Privado Pré (% a.a. fixo - Isento IR)</label>
                         <input type="number" id="debPreRate" value="12.0" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                        <div class="flex items-center gap-4 text-xs text-slate-300 pt-1">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="debPreCoupon" value="with" checked class="accent-emerald-500"> Com Cupom
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="debPreCoupon" value="without" class="accent-emerald-500"> Sem Cupom
+                            </label>
+                        </div>
                     </div>
 
-                    <div id="input_debPos">
-                        <label for="debPosRate" class="block text-slate-300 mb-1">Crédito Privado Pós Spread (% a.a. sobre CDI + Cupons - Isento IR)</label>
+                    <!-- Crédito Privado Pós -->
+                    <div id="input_debPos" class="space-y-2">
+                        <label for="debPosRate" class="block text-slate-300 mb-1">Crédito Privado Pós Spread (% a.a. sobre CDI - Isento IR)</label>
                         <input type="number" id="debPosRate" value="1.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                        <div class="flex items-center gap-4 text-xs text-slate-300 pt-1">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="debPosCoupon" value="with" checked class="accent-emerald-500"> Com Cupom
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="debPosCoupon" value="without" class="accent-emerald-500"> Sem Cupom
+                            </label>
+                        </div>
                     </div>
 
-                    <div id="input_debIpca">
-                        <label for="debIpcaRate" class="block text-slate-300 mb-1">Crédito Privado IPCA+ (Taxa fixa + IPCA + Cupons - Isento IR)</label>
+                    <!-- Crédito Privado IPCA+ -->
+                    <div id="input_debIpca" class="space-y-2">
+                        <label for="debIpcaRate" class="block text-slate-300 mb-1">Crédito Privado IPCA+ (Taxa fixa + IPCA - Isento IR)</label>
                         <input type="number" id="debIpcaRate" value="6.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                        <div class="flex items-center gap-4 text-xs text-slate-300 pt-1">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="debIpcaCoupon" value="with" checked class="accent-emerald-500"> Com Cupom
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="debIpcaCoupon" value="without" class="accent-emerald-500"> Sem Cupom
+                            </label>
+                        </div>
                     </div>
 
                     <div id="input_poupanca" class="hidden">
@@ -254,8 +281,8 @@
                 </div>
 
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-                    <h3 class="text-lg font-semibold text-white mb-1">Evolução do Saldo em Conta (Oscilação com Cupons)</h3>
-                    <p class="text-xs text-slate-400 mb-4">Veja o gráfico oscilar a cada 6 meses quando os cupons são pagos e descontados do principal do ativo.</p>
+                    <h3 class="text-lg font-semibold text-white mb-1">Evolução do Saldo em Conta</h3>
+                    <p class="text-xs text-slate-400 mb-4">Veja o gráfico oscilar a cada 6 meses caso selecione opções com cupom, ou crescer exponencialmente na opção sem cupom.</p>
                     <div class="relative h-72 sm:h-80">
                         <canvas id="growthChart"></canvas>
                     </div>
@@ -375,6 +402,11 @@
             return { finalGross: current, totalCouponsPaid, totalTaxPaid: 0, history };
         }
 
+        function getRadioValue(name) {
+            const checkedRadio = document.querySelector(`input[name="${name}"]:checked`);
+            return checkedRadio ? checkedRadio.value : 'with';
+        }
+
         function updateSimulation() {
             const P = parseFloat(document.getElementById('initialAmount').value) || 0;
             const PMT = parseFloat(document.getElementById('monthlyAmount').value) || 0;
@@ -409,24 +441,33 @@
                 investments.push({ id: 'lcaPre', name: 'LCA / LCI (Prefixada)', gross: res.finalGross, taxRate: 0, coupons: 0, history: res.history, color: '#06b6d4' });
             }
 
+            // Crédito Privado Pré
             if (activeAssets.includes('debPre')) {
                 const rate = (parseFloat(document.getElementById('debPreRate').value) || 0) / 100;
-                const res = calculateCouponInterest(P, PMT, rate, months);
-                investments.push({ id: 'debPre', name: 'Crédito Privado Pré (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#e11d48' });
+                const hasCoupon = getRadioValue('debPreCoupon') === 'with';
+                const res = hasCoupon ? calculateCouponInterest(P, PMT, rate, months) : calculateCompoundInterest(P, PMT, rate, months);
+                const labelName = `Crédito Privado Pré ${hasCoupon ? '(Cupons)' : '(Sem Cupom)'}`;
+                investments.push({ id: 'debPre', name: labelName, gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid || 0, history: res.history, color: '#e11d48' });
             }
 
+            // Crédito Privado Pós
             if (activeAssets.includes('debPos')) {
                 const spread = (parseFloat(document.getElementById('debPosRate').value) || 0) / 100;
                 const totalRate = (1 + cdi) * (1 + spread) - 1;
-                const res = calculateCouponInterest(P, PMT, totalRate, months);
-                investments.push({ id: 'debPos', name: 'Crédito Privado Pós (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#f43f5e' });
+                const hasCoupon = getRadioValue('debPosCoupon') === 'with';
+                const res = hasCoupon ? calculateCouponInterest(P, PMT, totalRate, months) : calculateCompoundInterest(P, PMT, totalRate, months);
+                const labelName = `Crédito Privado Pós ${hasCoupon ? '(Cupons)' : '(Sem Cupom)'}`;
+                investments.push({ id: 'debPos', name: labelName, gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid || 0, history: res.history, color: '#f43f5e' });
             }
 
+            // Crédito Privado IPCA+
             if (activeAssets.includes('debIpca')) {
                 const fixedSpread = (parseFloat(document.getElementById('debIpcaRate').value) || 0) / 100;
                 const totalRate = (1 + ipca) * (1 + fixedSpread) - 1;
-                const res = calculateCouponInterest(P, PMT, totalRate, months);
-                investments.push({ id: 'debIpca', name: 'Crédito Privado IPCA+ (Cupons)', gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid, history: res.history, color: '#a855f7' });
+                const hasCoupon = getRadioValue('debIpcaCoupon') === 'with';
+                const res = hasCoupon ? calculateCouponInterest(P, PMT, totalRate, months) : calculateCompoundInterest(P, PMT, totalRate, months);
+                const labelName = `Crédito Privado IPCA+ ${hasCoupon ? '(Cupons)' : '(Sem Cupom)'}`;
+                investments.push({ id: 'debIpca', name: labelName, gross: res.finalGross, taxRate: 0, customTax: 0, coupons: res.totalCouponsPaid || 0, history: res.history, color: '#a855f7' });
             }
 
             if (activeAssets.includes('poupanca')) {
@@ -539,7 +580,7 @@
                     backgroundColor: res.color + '1A',
                     borderWidth: 2,
                     tension: 0.1,
-                    pointRadius: 1
+                    pointRadius: months > 60 ? 0 : 1
                 };
             });
 
@@ -563,7 +604,7 @@
                         }
                     },
                     scales: {
-                        x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 } },
                         y: {
                             grid: { color: '#334155' },
                             ticks: {
@@ -580,6 +621,7 @@
         document.getElementById('startDate').addEventListener('change', updateSimulation);
         document.querySelectorAll('input, select').forEach(input => {
             input.addEventListener('input', updateSimulation);
+            input.addEventListener('change', updateSimulation);
         });
 
         // PWA Setup
@@ -608,7 +650,7 @@
 
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'simulador-pwa-v6';
+                const CACHE_NAME = 'simulador-pwa-v7';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])).catch(() => {}));
                 });
