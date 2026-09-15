@@ -36,7 +36,7 @@
     <header class="bg-slate-800 border-b border-slate-700 py-6 mb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 class="text-2xl sm:text-3xl font-bold text-emerald-400">Comparador de Renda Fixa & Crédito Privado</h1>
-            <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais, LCA Pré, datas retroativas e limite de 4 ativos visíveis.</p>
+            <p class="text-slate-400 text-sm sm:text-base mt-1">Simule investimentos com cupons semestrais, LCA Pré, datas retroativas e oscilação visual de cupons.</p>
         </div>
     </header>
 
@@ -177,13 +177,14 @@
                         💡 Parecer do Especialista
                     </h3>
                     <ul class="text-sm text-slate-300 space-y-2">
-                        <li><strong>Melhor Rentabilidade Líquida:</strong> A opção <span id="parecerMelhorOpcao" class="font-bold text-emerald-400">-</span> se destaca com o maior retorno final, totalizando <span id="parecerValorFinal" class="font-bold text-emerald-400">R$ 0,00</span>.</li>
+                        <li><strong>Melhor Rentabilidade Líquida Total:</strong> A opção <span id="parecerMelhorOpcao" class="font-bold text-emerald-400">-</span> se destaca com o maior retorno final acumulado, totalizando <span id="parecerValorFinal" class="font-bold text-emerald-400">R$ 0,00</span>.</li>
                         <li><strong>Veredito:</strong> Para maximizar seus ganhos no período simulado, a opção <span id="parecerRecomendada" class="font-bold text-emerald-400">-</span> é a alternativa mais rentável para o seu perfil simulado.</li>
                     </ul>
                 </div>
 
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">Evolução do Patrimônio Líquido (Acumulado)</h3>
+                    <h3 class="text-lg font-semibold text-white mb-1">Evolução do Saldo em Conta (Oscilação com Cupons)</h3>
+                    <p class="text-xs text-slate-400 mb-4">Veja o gráfico oscilar a cada 6 meses quando os cupons são pagos e descontados do principal do ativo.</p>
                     <div class="relative h-72 sm:h-80">
                         <canvas id="growthChart"></canvas>
                     </div>
@@ -197,10 +198,10 @@
                                 <tr>
                                     <th class="py-3 px-4">Investimento</th>
                                     <th class="py-3 px-4">Total Investido</th>
-                                    <th class="py-3 px-4">Valor Bruto</th>
+                                    <th class="py-3 px-4">Saldo Final Ativo</th>
                                     <th class="py-3 px-4">Imposto (IR)</th>
-                                    <th class="py-3 px-4">Cupons Pagos</th>
-                                    <th class="py-3 px-4">Valor Líquido</th>
+                                    <th class="py-3 px-4">Cupons Sacados</th>
+                                    <th class="py-3 px-4">Valor Líquido Total</th>
                                     <th class="py-3 px-4">Retorno (%)</th>
                                 </tr>
                             </thead>
@@ -217,7 +218,6 @@
     <script>
         let growthChart = null;
 
-        // Definir data retroativa padrão (hoje)
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('startDate').value = today;
 
@@ -236,7 +236,6 @@
             return val.toFixed(2).replace('.', ',') + '%';
         }
 
-        // Lógica de limite de 4 checkboxes + esconder inputs
         const checkboxes = document.querySelectorAll('.asset-checkbox');
         const selectedCountEl = document.getElementById('selectedCount');
 
@@ -266,7 +265,6 @@
 
         checkboxes.forEach(cb => cb.addEventListener('change', updateCheckboxLimits));
 
-        // Cálculo composto padrão
         function calculateCompoundInterest(P, PMT, annualRate, months) {
             let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
             let history = [P];
@@ -279,7 +277,7 @@
             return { finalGross: current, history };
         }
 
-        // Cálculo com Cupons Semestrais ISENTOS de IR
+        // Ajustado para refletir a oscilação do saldo no histórico
         function calculateCouponInterest(P, PMT, annualRate, months) {
             let monthlyRate = Math.pow(1 + annualRate, 1/12) - 1;
             let history = [P];
@@ -289,18 +287,15 @@
             for (let m = 1; m <= months; m++) {
                 current = current * (1 + monthlyRate) + PMT;
                 
-                // A cada 6 meses, calcula o cupom
+                // A cada 6 meses o cupom é destacado e sai do saldo do título
                 if (m % 6 === 0) {
                     let semestralRate = Math.pow(1 + annualRate, 6/12) - 1;
                     let grossCoupon = current * semestralRate;
                     
-                    // Isento de IR: Cupom líquido = Cupom bruto
                     totalCouponsPaid += grossCoupon;
-
-                    // O valor do cupom sai do principal acumulado
-                    current = current - grossCoupon; 
+                    current = current - grossCoupon; // O valor é sacado do ativo
                 }
-                history.push(current + totalCouponsPaid);
+                history.push(current); // Armazena o saldo real restante no ativo para criar a queda no gráfico
             }
             return { finalGross: current, totalCouponsPaid, totalTaxPaid: 0, history };
         }
@@ -388,10 +383,10 @@
                         <h4 class="text-slate-400 text-sm font-medium mb-1">${res.name}</h4>
                         <div class="text-2xl font-bold text-white mb-2">${formatCurrency(res.net)}</div>
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400">Lucro Líquido: <strong class="text-emerald-400 font-semibold">${formatCurrency(res.netProfit)}</strong></span>
+                            <span class="text-slate-400">Lucro Líquido Total: <strong class="text-emerald-400 font-semibold">${formatCurrency(res.netProfit)}</strong></span>
                             <span class="text-slate-400">Retorno: <strong class="text-slate-200 font-semibold">${formatPercent(res.netReturnPct)}</strong></span>
                         </div>
-                        ${res.coupons > 0 ? `<div class="mt-2 text-xs text-emerald-400 font-medium">Cupons Isentos Sacados: ${formatCurrency(res.coupons)}</div>` : ''}
+                        ${res.coupons > 0 ? `<div class="mt-2 text-xs text-emerald-400 font-medium">Cupons Sacados (Isentos): ${formatCurrency(res.coupons)}</div>` : ''}
                     </div>
                 `;
                 cardsContainer.innerHTML += cardHtml;
@@ -444,7 +439,7 @@
             const datasets = results.map(res => {
                 const netHistory = res.history.map((val, idx) => {
                     if (idx === 0) return val;
-                    if (res.taxRate === 0) return val; // Se isento de IR (inclusive cupons), o histórico já é o valor final líquido
+                    if (res.taxRate === 0) return val;
                     
                     const investedUntilNow = initialP + (monthlyPMT * idx);
                     const grossProfit = val - investedUntilNow;
@@ -460,8 +455,8 @@
                     borderColor: res.color,
                     backgroundColor: res.color + '1A',
                     borderWidth: 2,
-                    tension: 0.3,
-                    pointRadius: 0
+                    tension: 0.1, // Linha mais direta para evidenciar as quedas nos cupons
+                    pointRadius: 1
                 };
             });
 
@@ -530,7 +525,7 @@
 
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'simulador-pwa-v2';
+                const CACHE_NAME = 'simulador-pwa-v3';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])).catch(() => {}));
                 });
